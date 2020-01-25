@@ -11,20 +11,42 @@ namespace ContosoUniversity.Helpers
 {
     public class SortFilterPage
     {
+        const int PAGESIZE = 3;
+
         public string NameSort { get; set; }
         public string DateSort { get; set; }
         public string CurrentFilter { get; set; }
         public string CurrentSort { get; set; }
 
-        public IList<Student> Students { get; set; }
+        public PaginatedList<Student> Students { get; set; }
 
-        public async Task FormatStudentIndex(SchoolContext context, string sortOrder)
+        public async Task FormatStudentIndex(SchoolContext context, string sortOrder,
+            string currentFilter, string searchString, int? pageIndex)
         {
+            CurrentSort = sortOrder;
             NameSort = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             DateSort = sortOrder == "Date" ? "date_desc" : "Date";
 
+            if (searchString != null)
+            {
+                // Resets page index to 1 when there is a new search string
+                pageIndex = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            CurrentFilter = searchString;
+
             IQueryable<Student> studentsIQ = from s in context.Students
                                              select s;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                studentsIQ = studentsIQ.Where(s => s.LastName.Contains(searchString)
+                                       || s.FirstMidName.Contains(searchString));
+            }
 
             switch (sortOrder)
             {
@@ -42,7 +64,9 @@ namespace ContosoUniversity.Helpers
                     break;
             }
 
-            Students = await studentsIQ.AsNoTracking().ToListAsync();
+            //int pageSize = 3;
+            Students = await PaginatedList<Student>.CreateAsync(
+                studentsIQ.AsNoTracking(), pageIndex ?? 1, PAGESIZE);
         }
     }
 }

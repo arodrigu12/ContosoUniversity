@@ -21,10 +21,12 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Students
-        public async Task<IActionResult> Index(string sortOrder)
+        public async Task<IActionResult> Index(string sortOrder,
+            string currentFilter, string searchString, int? pageIndex)
         {
             SortFilterPage formatingObj = new SortFilterPage();
-            await formatingObj.FormatStudentIndex(_context, sortOrder);
+            await formatingObj.FormatStudentIndex(_context, sortOrder, 
+                currentFilter, searchString, pageIndex);
 
             return View(formatingObj);
         }
