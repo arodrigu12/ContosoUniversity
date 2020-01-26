@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.Helpers;
 
 namespace ContosoUniversity.Controllers
 {
@@ -20,9 +21,14 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Students
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder,
+            string currentFilter, string searchString, int? pageIndex)
         {
-            return View(await _context.Students.ToListAsync());
+            SortFilterPage formatingObj = new SortFilterPage();
+            await formatingObj.FormatStudentIndex(_context, sortOrder, 
+                currentFilter, searchString, pageIndex);
+
+            return View(formatingObj);
         }
 
         // GET: Students/Details/5
