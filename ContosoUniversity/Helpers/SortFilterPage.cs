@@ -20,7 +20,7 @@ namespace ContosoUniversity.Helpers
 
         public PaginatedList<Student> Students { get; set; }
 
-        public async Task FormatStudentIndex(SchoolContext context, string sortOrder,
+        public async Task FormatStudentIndex(ApplicationDbContext context, string sortOrder,
             string currentFilter, string searchString, int? pageIndex)
         {
             CurrentSort = sortOrder;

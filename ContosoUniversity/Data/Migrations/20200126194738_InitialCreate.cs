@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace ContosoUniversity.Migrations
+namespace ContosoUniversity.Data.Migrations
 {
     public partial class InitialCreate : Migration
     {

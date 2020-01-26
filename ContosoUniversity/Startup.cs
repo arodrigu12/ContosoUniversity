@@ -31,9 +31,9 @@ namespace ContosoUniversity
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddDbContext<SchoolContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("SchoolContext")));
+            //services.AddDbContext<SchoolContext>(options =>
+            //    options.UseSqlServer(
+            //        Configuration.GetConnectionString("SchoolContext")));
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();

@@ -11,9 +11,9 @@ namespace MvcMovie.Models
     {
         public static void Initialize(IServiceProvider serviceProvider)
         {
-            using (var context = new SchoolContext(
+            using (var context = new ApplicationDbContext(
                 serviceProvider.GetRequiredService<
-                    DbContextOptions<SchoolContext>>()))
+                    DbContextOptions<ApplicationDbContext>>()))
             {
                 // Look for any students.
                 if (context.Students.Any())
