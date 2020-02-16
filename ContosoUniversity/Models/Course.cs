@@ -16,9 +16,14 @@ namespace ContosoUniversity.Models
         [Range(0, 5)]
         public int Credits { get; set; }
 
+        public string CourseName
+        {
+            get { return Title + " " + CourseID; }
+        }
+
         public int DepartmentID { get; set; }
         public Department Department { get; set; }
-
+    
         public IList<Enrollment> Enrollments { get; set; }
         public IList<CourseAssignment> CourseAssignments { get; set; }
     }
