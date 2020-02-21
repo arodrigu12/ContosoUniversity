@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.ViewModels;
 
 namespace ContosoUniversity.Controllers
 {
@@ -48,8 +49,10 @@ namespace ContosoUniversity.Controllers
         // GET: Courses/Create
         public IActionResult Create()
         {
-            ViewData["DepartmentID"] = new SelectList(_context.Departments, "DepartmentID", "DepartmentID");
-            return View();
+            CreateEditCourseViewModel createEditCourseViewModel =
+                new CreateEditCourseViewModel(_context.Departments.OrderBy(n => n.Name).ToList());
+
+            return View(createEditCourseViewModel);
         }
 
         // POST: Courses/Create
@@ -57,16 +60,23 @@ namespace ContosoUniversity.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CourseID,Title,Credits,DepartmentID")] Course course)
+        public async Task<IActionResult> Create([Bind("CourseID,Title,Credits,DepartmentID")] CreateEditCourseViewModel createEditCourseVM)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(course);
+                Course newCourse = new Course
+                {
+                    CourseID = createEditCourseVM.CourseID,
+                    Title = createEditCourseVM.Title,
+                    Credits = createEditCourseVM.Credits,
+                    DepartmentID = createEditCourseVM.DepartmentID
+                };
+                _context.Add(newCourse);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DepartmentID"] = new SelectList(_context.Departments, "DepartmentID", "DepartmentID", course.DepartmentID);
-            return View(course);
+
+            return View(createEditCourseVM);
         }
 
         // GET: Courses/Edit/5
