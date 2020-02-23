@@ -36,6 +36,7 @@ namespace ContosoUniversity.Controllers
             }
 
             var course = await _context.Courses
+                .AsNoTracking() // improves performance when tracking isn't required.
                 .Include(c => c.Department)
                 .FirstOrDefaultAsync(m => m.CourseID == id);
             if (course == null)
@@ -160,6 +161,7 @@ namespace ContosoUniversity.Controllers
             }
 
             var course = await _context.Courses
+                .AsNoTracking() // improves performance when tracking isn't required.
                 .Include(c => c.Department)
                 .FirstOrDefaultAsync(m => m.CourseID == id);
             if (course == null)
