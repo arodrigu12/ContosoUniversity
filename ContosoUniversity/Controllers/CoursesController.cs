@@ -92,8 +92,19 @@ namespace ContosoUniversity.Controllers
             {
                 return NotFound();
             }
-            ViewData["DepartmentID"] = new SelectList(_context.Departments, "DepartmentID", "DepartmentID", course.DepartmentID);
-            return View(course);
+
+            List<Department> departmentList = await _context.Departments.OrderBy(n => n.Name).ToListAsync();
+
+            CreateEditCourseViewModel createEditCourseVM =
+                new CreateEditCourseViewModel(departmentList)
+                {
+                    CourseID = course.CourseID,
+                    Title = course.Title,
+                    Credits = course.Credits,
+                    DepartmentID = course.DepartmentID
+                };
+
+            return View(createEditCourseVM);
         }
 
         // POST: Courses/Edit/5
@@ -101,15 +112,23 @@ namespace ContosoUniversity.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Title,Credits,DepartmentID")] Course course)
+        public async Task<IActionResult> Edit(int id, [Bind("CourseID,Title,Credits,DepartmentID")] CreateEditCourseViewModel createEditCourseVM)
         {
-            if (id != course.CourseID)
+            if (id != createEditCourseVM.CourseID)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
+                Course course = new Course
+                {
+                    CourseID = createEditCourseVM.CourseID,
+                    Title = createEditCourseVM.Title,
+                    Credits = createEditCourseVM.Credits,
+                    DepartmentID = createEditCourseVM.DepartmentID
+                };
+
                 try
                 {
                     _context.Update(course);
@@ -128,8 +147,8 @@ namespace ContosoUniversity.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["DepartmentID"] = new SelectList(_context.Departments, "DepartmentID", "DepartmentID", course.DepartmentID);
-            return View(course);
+
+            return View(createEditCourseVM);
         }
 
         // GET: Courses/Delete/5
