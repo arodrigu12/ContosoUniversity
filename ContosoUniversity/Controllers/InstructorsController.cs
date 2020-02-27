@@ -11,13 +11,13 @@ using ContosoUniversity.ViewModels;
 
 namespace ContosoUniversity.Controllers
 {
-    public class InstructorsController : Controller
+    public class InstructorsController : InstructorCoursesController
     {
-        private readonly ApplicationDbContext _context;
+        //private readonly ApplicationDbContext _context;
 
-        public InstructorsController(ApplicationDbContext context)
+        public InstructorsController(ApplicationDbContext context) : base(context)
         {
-            _context = context;
+            //_context = context;
         }
 
         public InstructorIndexData InstructorData { get; set; }
