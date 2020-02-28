@@ -1,4 +1,4 @@
-﻿@model ContosoUniversity.Models.Instructor
+﻿@model ContosoUniversity.ViewModels.InstructorCoursesViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -12,26 +12,57 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="ID" />
+            <input type="hidden" asp-for="Instructor.ID" />
             <div class="form-group">
-                <label asp-for="LastName" class="control-label"></label>
-                <input asp-for="LastName" class="form-control" />
-                <span asp-validation-for="LastName" class="text-danger"></span>
+                <label asp-for="Instructor.LastName" class="control-label"></label>
+                <input asp-for="Instructor.LastName" class="form-control" />
+                <span asp-validation-for="Instructor.LastName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="FirstMidName" class="control-label"></label>
-                <input asp-for="FirstMidName" class="form-control" />
-                <span asp-validation-for="FirstMidName" class="text-danger"></span>
+                <label asp-for="Instructor.FirstMidName" class="control-label"></label>
+                <input asp-for="Instructor.FirstMidName" class="form-control" />
+                <span asp-validation-for="Instructor.FirstMidName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="HireDate" class="control-label"></label>
-                <input asp-for="HireDate" class="form-control" />
-                <span asp-validation-for="HireDate" class="text-danger"></span>
+                <label asp-for="Instructor.HireDate" class="control-label"></label>
+                <input asp-for="Instructor.HireDate" class="form-control" />
+                <span asp-validation-for="Instructor.HireDate" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <label asp-for="Instructor.OfficeAssignment.Location" class="control-label"></label>
+                <input asp-for="Instructor.OfficeAssignment.Location" class="form-control" />
+                <span asp-validation-for="Instructor.OfficeAssignment.Location" class="text-danger" />
             </div>
-        </form>
+            <div class="form-group">
+                <div class="table">
+                    <table>
+                        <tr>
+                            @{
+                                int cnt = 0;
+
+                                foreach (var course in Model.AssignedCourseDataList)
+                                {
+                                    if (cnt++ % 3 == 0)
+                                    {
+                                        @:</tr><tr>
+                                    }
+                                    @:<td>
+                                        <input type="checkbox"
+                                               name="selectedCourses"
+                                               value="@course.CourseID"
+                                               @(Html.Raw(course.Assigned ? "checked=\"checked\"" : "")) />
+                                               @course.CourseID @:  @course.Title
+                                    @:</td>
+                                }
+                                @:</tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                </div>
+            </form>
     </div>
 </div>
 

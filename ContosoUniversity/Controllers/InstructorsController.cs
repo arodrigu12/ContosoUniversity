@@ -112,12 +112,26 @@ namespace ContosoUniversity.Controllers
                 return NotFound();
             }
 
-            var instructor = await _context.Instructors.FindAsync(id);
-            if (instructor == null)
+            InstructorCoursesViewModel instructorCoursesVM = new InstructorCoursesViewModel();
+
+            //var instructor = await _context.Instructors.FindAsync(id);
+
+            instructorCoursesVM.Instructor = await _context.Instructors
+                .Include(i => i.OfficeAssignment)
+                .Include(i => i.CourseAssignments).ThenInclude(i => i.Course)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id);
+
+            if (instructorCoursesVM.Instructor == null)
             {
                 return NotFound();
             }
-            return View(instructor);
+
+            PopulateAssignedCourseData(instructorCoursesVM.Instructor);
+
+            instructorCoursesVM.AssignedCourseDataList = this.AssignedCourseDataList;
+
+            return View(instructorCoursesVM);
         }
 
         // POST: Instructors/Edit/5
