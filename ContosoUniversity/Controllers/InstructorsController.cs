@@ -139,18 +139,43 @@ namespace ContosoUniversity.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,LastName,FirstMidName,HireDate")] Instructor instructor)
+        public async Task<IActionResult> Edit(int? id, string[] selectedCourses,
+            [Bind("ID,LastName,FirstMidName,HireDate")] Instructor instructor)
         {
             if (id != instructor.ID)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            InstructorCoursesViewModel instructorCoursesVM = new InstructorCoursesViewModel();
+
+            instructorCoursesVM.Instructor = await _context.Instructors
+                .Include(i => i.OfficeAssignment)
+                .Include(i => i.CourseAssignments)
+                    .ThenInclude(i => i.Course)
+                .FirstOrDefaultAsync(s => s.ID == id);
+
+            if (instructorCoursesVM.Instructor == null)
             {
+                return NotFound();
+            }
+
+            if (await TryUpdateModelAsync<Instructor>(
+                instructorCoursesVM.Instructor,
+                "Instructor",
+                i => i.FirstMidName, i => i.LastName,
+                i => i.HireDate, i => i.OfficeAssignment))
+            {
+                if (String.IsNullOrWhiteSpace(
+                    instructorCoursesVM.Instructor.OfficeAssignment?.Location))
+                {
+                    instructorCoursesVM.Instructor.OfficeAssignment = null;
+                }
+                UpdateInstructorCourses(selectedCourses, instructorCoursesVM.Instructor);
+
                 try
                 {
-                    _context.Update(instructor);
+                    //_context.Update(instructor);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -166,7 +191,13 @@ namespace ContosoUniversity.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(instructor);
+
+            //These method calls restore the assigned course data entered on the page, when it is redisplayed with an error message
+            UpdateInstructorCourses(selectedCourses, instructorCoursesVM.Instructor);
+            PopulateAssignedCourseData(instructorCoursesVM.Instructor);
+            instructorCoursesVM.AssignedCourseDataList = this.AssignedCourseDataList;
+
+            return View(instructorCoursesVM);
         }
 
         // GET: Instructors/Delete/5
