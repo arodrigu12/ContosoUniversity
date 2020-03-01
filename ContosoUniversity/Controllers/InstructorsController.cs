@@ -85,7 +85,18 @@ namespace ContosoUniversity.Controllers
         // GET: Instructors/Create
         public IActionResult Create()
         {
-            return View();
+            InstructorCoursesViewModel instructorCoursesVM = new InstructorCoursesViewModel();
+
+            instructorCoursesVM.Instructor = new Instructor();
+            instructorCoursesVM.Instructor.CourseAssignments = new List<CourseAssignment>();
+
+            // Provides an empty collection for the foreach loop
+            // foreach (var course in Model.AssignedCourseDataList)
+            // in the Create Razor page.
+            PopulateAssignedCourseData(instructorCoursesVM.Instructor);
+            instructorCoursesVM.AssignedCourseDataList = this.AssignedCourseDataList;
+
+            return View(instructorCoursesVM);
         }
 
         // POST: Instructors/Create
@@ -93,15 +104,45 @@ namespace ContosoUniversity.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,LastName,FirstMidName,HireDate")] Instructor instructor)
+        public async Task<IActionResult> Create(string[] selectedCourses, 
+            [Bind("ID,LastName,FirstMidName,HireDate")] Instructor instructor)
         {
-            if (ModelState.IsValid)
+            InstructorCoursesViewModel instructorCoursesVM = new InstructorCoursesViewModel();
+
+            instructorCoursesVM.Instructor = new Instructor();
+
+            if (selectedCourses != null)
             {
-                _context.Add(instructor);
+                instructorCoursesVM.Instructor.CourseAssignments = new List<CourseAssignment>();
+                foreach (var course in selectedCourses)
+                {
+                    var courseToAdd = new CourseAssignment
+                    {
+                        // Note that only CourseID is populated because InstructorID does not exist
+                        // until new instructor is created by SaveChangesAsync() below
+                        CourseID = int.Parse(course)
+                    };
+                    instructorCoursesVM.Instructor.CourseAssignments.Add(courseToAdd);
+                }
+            }
+
+            if (await TryUpdateModelAsync<Instructor>(
+                instructorCoursesVM.Instructor,
+                "Instructor",
+                i => i.FirstMidName, i => i.LastName,
+                i => i.HireDate, i => i.OfficeAssignment))
+            {
+                _context.Instructors.Add(instructorCoursesVM.Instructor);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
-            return View(instructor);
+
+            // Something went wrong. Redirect to create instructor view
+            PopulateAssignedCourseData(instructorCoursesVM.Instructor);
+            instructorCoursesVM.AssignedCourseDataList = this.AssignedCourseDataList;
+
+            return View(instructorCoursesVM);
         }
 
         // GET: Instructors/Edit/5
