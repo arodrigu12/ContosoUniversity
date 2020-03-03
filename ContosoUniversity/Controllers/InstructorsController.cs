@@ -262,9 +262,28 @@ namespace ContosoUniversity.Controllers
         // POST: Instructors/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int? id)
         {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
             var instructor = await _context.Instructors.FindAsync(id);
+
+            if (instructor == null)
+            {
+                return RedirectToAction(nameof(Index));
+            }
+
+            var departments = await _context.Departments
+                .Where(d => d.InstructorID == id)
+                .ToListAsync();
+
+            // No cascade delete for nullable FKs, by default. Would not want to delete department anyway,
+            // if instructor in charge of department is deleted from db, so set InstructorID to null
+            departments.ForEach(d => d.InstructorID = null);
+
             _context.Instructors.Remove(instructor);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
