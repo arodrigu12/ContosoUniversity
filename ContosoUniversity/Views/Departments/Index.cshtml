@@ -1,10 +1,10 @@
 ﻿@model IEnumerable<ContosoUniversity.Models.Department>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Departments";
 }
 
-<h1>Index</h1>
+<h1>Departments</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
@@ -22,10 +22,10 @@
                 @Html.DisplayNameFor(model => model.StartDate)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.RowVersion)
+                @Html.DisplayNameFor(model => model.Administrator)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Administrator)
+                RowVersion
             </th>
             <th></th>
         </tr>
@@ -43,10 +43,10 @@
                 @Html.DisplayFor(modelItem => item.StartDate)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.RowVersion)
+                @Html.DisplayFor(modelItem => item.Administrator.FullName)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Administrator.FirstMidName)
+                @item.RowVersion[7]
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.DepartmentID">Edit</a> |
