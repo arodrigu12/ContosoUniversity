@@ -7,16 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.ViewModels;
 
 namespace ContosoUniversity.Controllers
 {
-    public class DepartmentsController : Controller
+    public class DepartmentsController : DepartmentEditController
     {
-        private readonly ApplicationDbContext _context;
-
-        public DepartmentsController(ApplicationDbContext context)
+        public DepartmentsController(ApplicationDbContext context) : base(context)
         {
-            _context = context;
         }
 
         // GET: Departments
@@ -77,13 +75,24 @@ namespace ContosoUniversity.Controllers
                 return NotFound();
             }
 
-            var department = await _context.Departments.FindAsync(id);
-            if (department == null)
+            DepartmentEditViewModel departmentEditVM = new DepartmentEditViewModel();
+
+            departmentEditVM.Department = await _context.Departments
+                .Include(d => d.Administrator)  // eager loading
+                .AsNoTracking()                 // tracking not required
+                .FirstOrDefaultAsync(m => m.DepartmentID == id);
+
+            if (departmentEditVM.Department == null)
             {
                 return NotFound();
             }
-            ViewData["InstructorID"] = new SelectList(_context.Instructors, "ID", "LastName", department.InstructorID);
-            return View(department);
+
+            // Use strongly typed data rather than ViewData.
+            departmentEditVM.InstructorNameSL = new SelectList(_context.Instructors, "ID", "LastName", 
+                departmentEditVM.Department.InstructorID);
+
+            //ViewData["InstructorID"] = new SelectList(_context.Instructors, "ID", "LastName", department.InstructorID);
+            return View(departmentEditVM);
         }
 
         // POST: Departments/Edit/5
