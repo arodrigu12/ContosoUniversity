@@ -78,7 +78,7 @@ namespace ContosoUniversity.Controllers
             DepartmentEditViewModel departmentEditVM = new DepartmentEditViewModel();
 
             departmentEditVM.Department = await _context.Departments
-                .Include(d => d.Administrator)  // eager loading
+                //.Include(d => d.Administrator)  // eager loading
                 .AsNoTracking()                 // tracking not required
                 .FirstOrDefaultAsync(m => m.DepartmentID == id);
 
@@ -92,6 +92,7 @@ namespace ContosoUniversity.Controllers
                 departmentEditVM.Department.InstructorID);
 
             //ViewData["InstructorID"] = new SelectList(_context.Instructors, "ID", "LastName", department.InstructorID);
+
             return View(departmentEditVM);
         }
 
@@ -107,28 +108,77 @@ namespace ContosoUniversity.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            DepartmentEditViewModel departmentEditVM = new DepartmentEditViewModel();
+
+            if (!ModelState.IsValid)
+            {
+                departmentEditVM.Department = department;
+                departmentEditVM.InstructorNameSL = new SelectList(_context.Instructors, "ID", "LastName",
+                    departmentEditVM.Department.InstructorID);
+
+                return View(departmentEditVM);
+            }
+
+            var departmentToUpdate = await _context.Departments
+                .Include(i => i.Administrator)
+                .FirstOrDefaultAsync(m => m.DepartmentID == id);
+
+            if (departmentToUpdate == null)
+            {
+                departmentEditVM.Department = department;
+                departmentEditVM.InstructorNameSL = new SelectList(_context.Instructors, "ID", "LastName",
+                    departmentEditVM.Department.InstructorID);
+                ModelState.AddModelError(string.Empty,
+                    "Unable to save. The department was deleted by another user.");
+                return View(departmentEditVM);
+            }
+
+            // department.RowVersion is what was in the entity when it was originally fetched in the Get request,
+            // which may be different from the value that was in the database when FirstOrDefaultAsync was called
+            // in this method, if someone else updated the record before the call to FirstOrDefaultAsync
+            _context.Entry(departmentToUpdate).Property("RowVersion").OriginalValue = department.RowVersion;
+
+            if (await TryUpdateModelAsync<Department>(
+                departmentToUpdate,
+                "Department",
+                s => s.Name, s => s.StartDate, s => s.Budget, s => s.InstructorID))
             {
                 try
                 {
-                    _context.Update(department);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    if (!DepartmentExists(department.DepartmentID))
+                    var exceptionEntry = ex.Entries.Single();
+                    var clientValues = (Department)exceptionEntry.Entity;
+                    var databaseEntry = exceptionEntry.GetDatabaseValues();
+                    if (databaseEntry == null)
                     {
-                        return NotFound();
+                        departmentEditVM.Department = department;
+                        departmentEditVM.InstructorNameSL = new SelectList(_context.Instructors, "ID", "LastName",
+                            departmentEditVM.Department.InstructorID);
+                        ModelState.AddModelError(string.Empty, "Unable to save. " +
+                            "The department was deleted by another user.");
+                        return View(departmentEditVM);
                     }
-                    else
-                    {
-                        throw;
-                    }
+
+                    var dbValues = (Department)databaseEntry.ToObject();
+                    await SetDbErrorMessage(dbValues, clientValues);
+
+                    // Save the current RowVersion so next postback
+                    // matches unless a new concurrency issue happens.
+                    department.RowVersion = (byte[])dbValues.RowVersion;
+                    // Clear the model error for the next postback.
+                    ModelState.Remove("Department.RowVersion");
                 }
-                return RedirectToAction(nameof(Index));
             }
-            ViewData["InstructorID"] = new SelectList(_context.Instructors, "ID", "FirstMidName", department.InstructorID);
-            return View(department);
+
+            departmentEditVM.Department = department;
+            departmentEditVM.InstructorNameSL = new SelectList(_context.Instructors, "ID", "LastName",
+                departmentEditVM.Department.InstructorID);
+
+            return View(departmentEditVM);
         }
 
         // GET: Departments/Delete/5

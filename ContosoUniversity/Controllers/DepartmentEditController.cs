@@ -22,17 +22,6 @@ namespace ContosoUniversity.Controllers
 
         protected SelectList InstructorNameSL { get; set; }
 
-        protected IActionResult HandleDeletedDepartment(Department department)
-        {
-            //var deletedDepartment = new Department();
-            // ModelState contains the posted data because of the deletion error
-            // and will overide the Department instance values when displaying Page().
-            ModelState.AddModelError(string.Empty,
-                "Unable to save. The department was deleted by another user.");
-            InstructorNameSL = new SelectList(_context.Instructors, "ID", "FullName", department.InstructorID);
-            return View("Edit");
-        }
-
         protected async Task SetDbErrorMessage(Department dbValues, Department clientValues)
         {
 
