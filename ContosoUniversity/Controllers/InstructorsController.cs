@@ -13,11 +13,8 @@ namespace ContosoUniversity.Controllers
 {
     public class InstructorsController : InstructorCoursesController
     {
-        //private readonly ApplicationDbContext _context;
-
         public InstructorsController(ApplicationDbContext context) : base(context)
         {
-            //_context = context;
         }
 
         public InstructorIndexData InstructorData { get; set; }
